@@ -56,6 +56,7 @@ const Profile = () => {
             setTimeout(() => window.location.reload(), 1000);
 
         } catch (err) {
+            console.error('Profile update error:', err);
             setError(err.message || 'Failed to update profile');
         } finally {
             setLoading(false);

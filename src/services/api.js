@@ -124,14 +124,10 @@ export const orderAPI = {
   }),
 };
 export const userAPI = {
-  updateProfile: async (data) => {
-    const response = await fetch(`${API_URL}/users/profile`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
-    return handleResponse(response);
-  },
+  updateProfile: (data) => apiRequest('/api/users/profile', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
 };
 
 export const notificationAPI = {

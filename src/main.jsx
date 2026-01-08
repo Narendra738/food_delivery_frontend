@@ -8,3 +8,5 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+console.log('Zestro Frontend Loaded - Debug Version 2026-01-09');
