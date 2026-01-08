@@ -202,8 +202,13 @@ const Profile = () => {
                         </>
                     )}
                 </div>
+                <div className="text-center text-xs text-gray-400 pb-4">
+                    v2026-01-09-debug
+                </div>
             </div>
         </div>
+    );
+};
     );
 };
 
