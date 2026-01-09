@@ -23,9 +23,34 @@ const apiRequest = async (endpoint, options = {}) => {
   const token = getToken();
 
   const headers = {
+    // Only set Content-Type to json if it's not explicitly set to something else (or empty for FormData)
+    // We check if options.headers has Content-Type, or if it's not set at all we default to json
+    // But for FormData, we pass empty headers object from caller, so we need to be careful.
+    // Logic: Default to application/json UNLESS caller explicitly passed headers (which might be empty or have other types)
     'Content-Type': 'application/json',
     ...options.headers,
   };
+
+  // If Content-Type is explicitly undefined/null in options.headers, remove it
+  // This allows sending FormData where browser sets the boundary
+  // If Content-Type is explicitly undefined/null in options.headers, remove it
+  // This allows sending FormData where browser sets the boundary
+  if (options.headers && !options.headers['Content-Type'] && options.headers.hasOwnProperty('Content-Type')) {
+    delete headers['Content-Type'];
+  }
+
+  // Better approach: Check if Content-Type was set to empty object or specific value in options.headers
+  // If options.headers exists, use it. usage in updateProfile: headers: isFormData ? {} : ...
+  // But wait, we define 'Content-Type': 'application/json' first.
+
+  // Correct logic:
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+  };
+
+  // If options.headers is provided, merge it. If a key exists in options.headers, it overrides default.
+  // To uncork Content-Type (remove it), caller needs to set it to something or we handle it here.
+  // Let's modify apiRequest to be smarter.
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -124,10 +149,14 @@ export const orderAPI = {
   }),
 };
 export const userAPI = {
-  updateProfile: (data) => apiRequest('/api/users/profile', {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  }),
+  updateProfile: (data) => {
+    const isFormData = data instanceof FormData;
+    return apiRequest('/api/users/profile', {
+      method: 'PUT',
+      body: isFormData ? data : JSON.stringify(data),
+      headers: isFormData ? { 'Content-Type': null } : undefined,
+    });
+  },
 };
 
 export const notificationAPI = {

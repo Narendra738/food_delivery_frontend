@@ -29,7 +29,23 @@ const Profile = () => {
         setSuccess('');
 
         try {
-            const response = await userAPI.updateProfile(formData);
+            let dataToSend;
+
+            if (formData.file) {
+                // Use FormData for file upload
+                dataToSend = new FormData();
+                dataToSend.append('name', formData.name);
+                dataToSend.append('image', formData.file);
+            } else {
+                // Use regular JSON for URL update
+                dataToSend = {
+                    name: formData.name,
+                    image: formData.image
+                };
+            }
+
+            const response = await userAPI.updateProfile(dataToSend);
+
             // Update local storage and context
             // simplified update: reuse login method or trigger a reload/refresh
             // Ideally AuthContext should have an update method. For now, we manually update.
@@ -44,6 +60,9 @@ const Profile = () => {
             // but let's try to update the UI at least.
             setSuccess('Profile updated successfully!');
             setIsEditing(false);
+
+            // Clear file from state
+            setFormData(prev => ({ ...prev, file: null }));
 
             // A cheat to update context is hard without exposing setUser. 
             // We'll update formData to reflect new state and hope a refresh happens later.
@@ -110,16 +129,46 @@ const Profile = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-textSecondary dark:text-gray-400 mb-1">
-                                    Profile Image URL
+                                    Profile Image
                                 </label>
-                                <input
-                                    type="url"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                    placeholder="https://example.com/avatar.jpg"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">Paste a direct link to an image file.</p>
+
+                                <div className="space-y-4">
+                                    {/* URL Input Option */}
+                                    <div>
+                                        <div className="text-xs text-textSecondary dark:text-gray-400 mb-1">Option 1: Image URL</div>
+                                        <input
+                                            type="url"
+                                            value={formData.image}
+                                            onChange={(e) => setFormData({ ...formData, image: e.target.value, file: null })}
+                                            className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            placeholder="https://example.com/avatar.jpg"
+                                            disabled={!!formData.file}
+                                        />
+                                    </div>
+
+                                    <div className="text-center text-sm text-gray-400">- OR -</div>
+
+                                    {/* File Upload Option */}
+                                    <div>
+                                        <div className="text-xs text-textSecondary dark:text-gray-400 mb-1">Option 2: Upload from Device</div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    setFormData({ ...formData, file: file, image: '' }); // Clear URL if file selected
+                                                }
+                                            }}
+                                            className="w-full p-2 text-sm text-textPrimary dark:text-white border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 focus:outline-none"
+                                        />
+                                        {formData.file && (
+                                            <p className="text-xs text-green-500 mt-1">
+                                                Selected: {formData.file.name}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex space-x-3 pt-4">
@@ -209,7 +258,6 @@ const Profile = () => {
         </div>
     );
 };
-    );
-};
+
 
 export default Profile;
